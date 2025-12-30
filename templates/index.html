@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FinDash AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="brand">
+                <i class="fas fa-bolt"></i> FinDash
+            </div>
+            <ul class="nav-links">
+                <li class="active" onclick="showSection('dashboard')">
+                    <i class="fas fa-home"></i> Dashboard
+                </li>
+            </ul>
+
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header>
+                <div class="header-title">
+                    <h2>Overview</h2>
+                    <p id="curr-date">...</p>
+                </div>
+                <div class="header-actions">
+                    <select id="currency-select" class="currency-selector" onchange="updateCurrency()">
+                        <option value="INR" selected>INR (₹)</option>
+                        <option value="USD">USD ($)</option>
+                        <option value="EUR">EUR (€)</option>
+                    </select>
+                    <button class="icon-btn theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                        <i class="fas fa-sun"></i>
+                    </button>
+                    <button class="btn-primary" onclick="openAddModal()">
+                        <i class="fas fa-plus"></i> New Expense
+                    </button>
+                </div>
+            </header>
+
+            <!-- Status Cards -->
+            <section class="stats-row">
+                <div class="stat-card">
+                    <div class="icon-box income"><i class="fas fa-wallet"></i></div>
+                    <div class="stat-details">
+                        <span class="label">Total Spent</span>
+                        <h3 id="stat-total">$0.00</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box expense"><i class="fas fa-fire"></i></div>
+                    <div class="stat-details">
+                        <span class="label">Top Category</span>
+                        <h3 id="stat-top">N/A</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon-box count"><i class="fas fa-receipt"></i></div>
+                    <div class="stat-details">
+                        <span class="label">Transactions</span>
+                        <h3 id="stat-count">0</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Spending Trend -->
+                <div class="card chart-card wide">
+                    <div class="card-header">
+                        <h3>Spending Trends</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown (Pie) -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Distribution</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Expense (Bar) -->
+                <div class="card chart-card">
+                    <div class="card-header">
+                        <h3>Category Comparison</h3>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="card table-card wide">
+                    <div class="card-header">
+                        <h3>Recent Transactions</h3>
+                        <button class="btn-text" onclick="loadDashboard()">Refresh</button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Category</th>
+                                    <th>Note</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tx-body">
+                                <!-- Populated JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Floating Chat Widget -->
+        <div class="chat-widget collapsed" id="chatWidget">
+            <div class="chat-header" onclick="toggleChat()">
+                <div class="chat-title">
+                    <i class="fas fa-robot"></i> AI Assistant
+                </div>
+                <i class="fas fa-chevron-up toggle-icon" id="chatIcon"></i>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <div id="chat-history" class="chat-history"></div>
+                <div class="chat-input-area">
+                    <input type="text" id="user-input" placeholder="Ask Gemini..." onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Expense Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Expense</h3>
+                <span class="close" onclick="closeAddModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Amount</label>
+                    <input id="amount" type="number" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <input id="category" list="category-list" type="text" placeholder="e.g. Food, Travel">
+                    <datalist id="category-list">
+                        <option value="Food & Drink">
+                        <option value="Groceries">
+                        <option value="Transportation">
+                        <option value="Housing">
+                        <option value="Utilities">
+                        <option value="Entertainment">
+                        <option value="Health & Wellness">
+                        <option value="Shopping">
+                        <option value="Education">
+                        <option value="Investments">
+                        <option value="Salary">
+                        <option value="Other">
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label>Note</label>
+                    <input id="note" type="text" placeholder="Description (Optional)">
+                </div>
+                <button class="btn-block" onclick="addExpense()">Save Expense</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+
+</html>
